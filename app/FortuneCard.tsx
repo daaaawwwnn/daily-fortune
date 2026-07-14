@@ -66,9 +66,9 @@ export default function FortuneCard() {
       >
         <div className={`flip-card-inner ${flipped ? "flipped" : ""}`}>
           {/* Card back (shown first) */}
-          <div className="flip-card-face rainbow-border flex flex-col items-center justify-center gap-4 rounded-2xl shadow-2xl">
-            <div className="sparkle text-6xl">🌈</div>
-            <p className="rainbow-text text-lg font-bold tracking-wide">
+          <div className="flip-card-face flex flex-col items-center justify-center gap-4 rounded-2xl border border-amber-300/40 bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 shadow-2xl">
+            <div className="sparkle text-6xl">✨</div>
+            <p className="text-lg font-semibold tracking-wide text-amber-200">
               오늘의 운세
             </p>
             <p className="px-6 text-center text-sm text-indigo-200/80">
@@ -77,18 +77,18 @@ export default function FortuneCard() {
           </div>
 
           {/* Card front (fortune result) */}
-          <div className="flip-card-face flip-card-back flex flex-col items-center justify-center gap-5 rounded-2xl border-4 border-transparent bg-white p-6 text-center shadow-2xl">
-            <div className="text-4xl">🌈</div>
+          <div className="flip-card-face flip-card-back flex flex-col items-center justify-center gap-5 rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-orange-50 p-6 text-center shadow-2xl">
+            <div className="text-4xl">🔮</div>
             <div className="w-full">
               <div className="mb-1 flex items-baseline justify-between text-sm">
-                <span className="font-semibold text-purple-700">오늘의 운세 지수</span>
+                <span className="font-semibold text-amber-700">오늘의 운세 지수</span>
                 <span className="font-bold text-slate-800">
                   {score}점 · {scoreLabel(score)}
                 </span>
               </div>
-              <div className="h-3 w-full overflow-hidden rounded-full bg-slate-200">
+              <div className="h-3 w-full overflow-hidden rounded-full bg-amber-100">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-red-500 via-yellow-400 via-green-500 to-purple-600 transition-[width] duration-700 ease-out"
+                  className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500 transition-[width] duration-700 ease-out"
                   style={{ width: `${score}%` }}
                 />
               </div>
@@ -96,21 +96,21 @@ export default function FortuneCard() {
             <p className="text-base font-medium leading-relaxed text-slate-800">
               {fortune?.message}
             </p>
-            <div className="mt-2 w-full space-y-2 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-700">
+            <div className="mt-2 w-full space-y-2 rounded-xl bg-amber-100/70 px-4 py-3 text-sm text-slate-700">
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-red-600">행운의 아이템</span>
+                <span className="font-semibold text-amber-700">행운의 아이템</span>
                 <span>{fortune?.luckyItem}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-green-600">행운의 색</span>
+                <span className="font-semibold text-amber-700">행운의 색</span>
                 <span>{fortune?.luckyColor}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-blue-600">행운의 숫자</span>
+                <span className="font-semibold text-amber-700">행운의 숫자</span>
                 <span>{fortune?.luckyNumber}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-purple-600">행운의 방향</span>
+                <span className="font-semibold text-amber-700">행운의 방향</span>
                 <span>{direction}</span>
               </div>
             </div>
