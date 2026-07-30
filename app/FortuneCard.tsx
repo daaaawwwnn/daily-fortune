@@ -39,7 +39,11 @@ function scoreLabel(score: number): string {
   return "조심 🌿";
 }
 
-export default function FortuneCard() {
+type FortuneCardProps = {
+  onDraw?: (fortune: Fortune, extra: { direction: string; score: number }) => void;
+};
+
+export default function FortuneCard({ onDraw }: FortuneCardProps) {
   const [flipped, setFlipped] = useState(false);
   const [fortune, setFortune] = useState<Fortune | null>(null);
   const [score, setScore] = useState(0);
@@ -47,10 +51,14 @@ export default function FortuneCard() {
 
   const handleClick = () => {
     if (!flipped) {
-      setFortune((prev) => pickFortune(prev ?? undefined));
-      setScore(pickScore());
-      setDirection(pickDirection());
+      const nextFortune = pickFortune(fortune ?? undefined);
+      const nextScore = pickScore();
+      const nextDirection = pickDirection();
+      setFortune(nextFortune);
+      setScore(nextScore);
+      setDirection(nextDirection);
       setFlipped(true);
+      onDraw?.(nextFortune, { direction: nextDirection, score: nextScore });
     } else {
       setFlipped(false);
     }
