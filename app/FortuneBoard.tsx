@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import FortuneCard from "./FortuneCard";
+import RandomFortuneCard from "./RandomFortuneCard";
+import AiFortuneCard from "./AiFortuneCard";
 import HistoryTable from "./HistoryTable";
 import { buildEntry, getClientId, type HistoryEntry } from "./history";
 import { clearHistory, fetchHistory, insertHistory } from "./actions";
@@ -27,7 +28,7 @@ export default function FortuneBoard() {
       .finally(() => setLoading(false));
   }, [identity, ready]);
 
-  const handleDraw: React.ComponentProps<typeof FortuneCard>["onDraw"] = (
+  const handleDraw: React.ComponentProps<typeof RandomFortuneCard>["onDraw"] = (
     fortune,
     extra,
   ) => {
@@ -66,7 +67,10 @@ export default function FortuneBoard() {
 
   return (
     <>
-      <FortuneCard onDraw={handleDraw} />
+      <div className="flex w-full flex-col items-center gap-14 lg:flex-row lg:items-start lg:justify-center lg:gap-12">
+        <RandomFortuneCard onDraw={handleDraw} />
+        <AiFortuneCard onDraw={handleDraw} />
+      </div>
       <HistoryTable
         entries={history}
         onClear={handleClear}
