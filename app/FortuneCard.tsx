@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FORTUNES, type Fortune } from "./fortunes";
 import { drawAiFortune } from "./actions";
+import { getSavedBirthDate, saveBirthDate } from "./birthDate";
 
 function pickFortune(exclude?: Fortune): Fortune {
   if (FORTUNES.length === 1) return FORTUNES[0];
@@ -52,6 +53,13 @@ export default function FortuneCard({ onDraw }: FortuneCardProps) {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [isAi, setIsAi] = useState(false);
+  const [birthDate, setBirthDate] = useState<string | null>(null);
+  const [showBirthModal, setShowBirthModal] = useState(false);
+  const [birthInput, setBirthInput] = useState("");
+
+  useEffect(() => {
+    setBirthDate(getSavedBirthDate());
+  }, []);
 
   const handleClick = () => {
     if (aiLoading) return;
@@ -70,13 +78,11 @@ export default function FortuneCard({ onDraw }: FortuneCardProps) {
     }
   };
 
-  const handleAiClick = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (aiLoading) return;
+  const runAiDraw = async (bd: string) => {
     setAiLoading(true);
     setAiError(null);
     try {
-      const ai = await drawAiFortune();
+      const ai = await drawAiFortune(bd);
       const nextFortune: Fortune = {
         message: ai.message,
         luckyItem: ai.luckyItem,
@@ -96,6 +102,26 @@ export default function FortuneCard({ onDraw }: FortuneCardProps) {
     } finally {
       setAiLoading(false);
     }
+  };
+
+  const handleAiClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (aiLoading) return;
+    if (!birthDate) {
+      setBirthInput("");
+      setShowBirthModal(true);
+      return;
+    }
+    runAiDraw(birthDate);
+  };
+
+  const handleBirthSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!birthInput) return;
+    saveBirthDate(birthInput);
+    setBirthDate(birthInput);
+    setShowBirthModal(false);
+    runAiDraw(birthInput);
   };
 
   return (
@@ -185,6 +211,65 @@ export default function FortuneCard({ onDraw }: FortuneCardProps) {
         )}
       </button>
       {aiError && <p className="max-w-xs text-center text-sm text-red-300">⚠️ {aiError}</p>}
+      {birthDate && (
+        <p className="text-xs text-indigo-300/70">
+          🎂 {birthDate} 기준으로 반영돼요 ·{" "}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setBirthInput(birthDate);
+              setShowBirthModal(true);
+            }}
+            className="underline underline-offset-2 hover:text-indigo-200"
+          >
+            변경
+          </button>
+        </p>
+      )}
+
+      {showBirthModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setShowBirthModal(false)}
+        >
+          <form
+            onSubmit={handleBirthSubmit}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm rounded-2xl border border-violet-400/30 bg-slate-900 p-6 shadow-2xl"
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-violet-200">생년월일을 알려줘</h3>
+              <button
+                type="button"
+                onClick={() => setShowBirthModal(false)}
+                aria-label="닫기"
+                className="text-indigo-200/60 hover:text-indigo-100"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="mb-4 text-sm text-indigo-200/70">
+              나이·띠·별자리를 반영한 운세를 만들어줄게요. 이 브라우저에만 저장돼요.
+            </p>
+            <input
+              type="date"
+              required
+              value={birthInput}
+              onChange={(e) => setBirthInput(e.target.value)}
+              max={new Date().toISOString().slice(0, 10)}
+              min="1900-01-01"
+              className="w-full rounded-lg border border-indigo-400/30 bg-slate-800 px-3 py-2 text-sm text-indigo-50 focus:border-violet-300/60 focus:outline-none"
+            />
+            <button
+              type="submit"
+              className="mt-4 w-full rounded-lg bg-violet-500 px-3 py-2 text-sm font-semibold text-white transition hover:bg-violet-400"
+            >
+              확인하고 운세 보기
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

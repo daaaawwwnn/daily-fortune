@@ -114,8 +114,9 @@ export async function claimAnonymousHistory(anonId: string): Promise<void> {
 }
 
 // OpenRouter의 LLM으로 오늘의 운세를 새로 생성합니다. (API Key는 서버에만 존재)
-export async function drawAiFortune(): Promise<AiFortune> {
-  return generateAiFortune();
+// birthDate(YYYY-MM-DD)가 있으면 만 나이·띠·별자리를 반영합니다.
+export async function drawAiFortune(birthDate?: string): Promise<AiFortune> {
+  return generateAiFortune(birthDate);
 }
 
 // 주어진 구간(오늘)에 운세를 뽑은 서로 다른 소유자 수를 셉니다.
