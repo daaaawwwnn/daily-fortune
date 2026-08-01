@@ -1,6 +1,7 @@
 "use server";
 
 import { getSupabaseAdmin } from "./lib/supabaseServer";
+import { getSupabaseServer } from "./lib/supabaseServerClient";
 import type { HistoryEntry } from "./history";
 
 const TABLE = "fortune_history";
@@ -31,14 +32,27 @@ function rowToEntry(row: Row): HistoryEntry {
 const SELECT_COLS =
   "drawn_at, message, lucky_item, lucky_color, lucky_number, direction, score";
 
-// 특정 브라우저(client_id)의 운세 기록을 최신순으로 가져옵니다.
-export async function fetchHistory(clientId: string): Promise<HistoryEntry[]> {
-  if (!clientId) return [];
+// 기록의 소유자를 정합니다.
+// 로그인한 사용자면 세션에서 검증된 user.id를, 아니면 브라우저의 익명 id를 사용합니다.
+// (클라이언트가 남의 user.id를 위조할 수 없도록 항상 세션을 우선합니다.)
+async function resolveOwnerId(anonId: string): Promise<string> {
+  const supabase = await getSupabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return user?.id ?? anonId;
+}
+
+// 현재 소유자(로그인 사용자 또는 익명)의 운세 기록을 최신순으로 가져옵니다.
+export async function fetchHistory(anonId: string): Promise<HistoryEntry[]> {
+  const ownerId = await resolveOwnerId(anonId);
+  if (!ownerId) return [];
+
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from(TABLE)
     .select(SELECT_COLS)
-    .eq("client_id", clientId)
+    .eq("client_id", ownerId)
     .order("drawn_at", { ascending: false })
     .limit(MAX_ENTRIES);
 
@@ -48,13 +62,15 @@ export async function fetchHistory(clientId: string): Promise<HistoryEntry[]> {
 
 // 새 운세 기록을 저장하고, 갱신된 목록(최신순)을 반환합니다.
 export async function insertHistory(
-  clientId: string,
+  anonId: string,
   entry: HistoryEntry,
 ): Promise<HistoryEntry[]> {
-  if (!clientId) throw new Error("client_id가 없습니다.");
+  const ownerId = await resolveOwnerId(anonId);
+  if (!ownerId) throw new Error("소유자를 확인할 수 없습니다.");
+
   const supabase = getSupabaseAdmin();
   const { error } = await supabase.from(TABLE).insert({
-    client_id: clientId,
+    client_id: ownerId,
     drawn_at: entry.drawnAt,
     message: entry.message,
     lucky_item: entry.luckyItem,
@@ -65,10 +81,38 @@ export async function insertHistory(
   });
 
   if (error) throw new Error(`운세 기록 저장에 실패했습니다: ${error.message}`);
-  return fetchHistory(clientId);
+  return fetchHistory(anonId);
 }
 
-// 주어진 구간(오늘)에 운세를 뽑은 서로 다른 사람 수(client_id 기준)를 셉니다.
+// 현재 소유자의 모든 운세 기록을 삭제합니다.
+export async function clearHistory(anonId: string): Promise<HistoryEntry[]> {
+  const ownerId = await resolveOwnerId(anonId);
+  if (!ownerId) return [];
+
+  const supabase = getSupabaseAdmin();
+  const { error } = await supabase.from(TABLE).delete().eq("client_id", ownerId);
+  if (error) throw new Error(`운세 기록 삭제에 실패했습니다: ${error.message}`);
+  return [];
+}
+
+// 로그인 시, 그동안 익명(anonId)으로 쌓은 기록을 현재 계정으로 이전합니다.
+export async function claimAnonymousHistory(anonId: string): Promise<void> {
+  if (!anonId) return;
+  const supabase = await getSupabaseServer();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user || anonId === user.id) return;
+
+  const admin = getSupabaseAdmin();
+  const { error } = await admin
+    .from(TABLE)
+    .update({ client_id: user.id })
+    .eq("client_id", anonId);
+  if (error) throw new Error(`기록 이전에 실패했습니다: ${error.message}`);
+}
+
+// 주어진 구간(오늘)에 운세를 뽑은 서로 다른 소유자 수를 셉니다.
 export async function countTodayDrawers(
   startISO: string,
   endISO: string,
@@ -82,13 +126,4 @@ export async function countTodayDrawers(
 
   if (error) throw new Error(`오늘 참여자 수를 불러오지 못했습니다: ${error.message}`);
   return new Set((data ?? []).map((r) => r.client_id)).size;
-}
-
-// 특정 브라우저(client_id)의 모든 운세 기록을 삭제합니다.
-export async function clearHistory(clientId: string): Promise<HistoryEntry[]> {
-  if (!clientId) return [];
-  const supabase = getSupabaseAdmin();
-  const { error } = await supabase.from(TABLE).delete().eq("client_id", clientId);
-  if (error) throw new Error(`운세 기록 삭제에 실패했습니다: ${error.message}`);
-  return [];
 }
