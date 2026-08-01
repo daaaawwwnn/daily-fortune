@@ -11,28 +11,31 @@ export type HistoryEntry = {
   score: number;
 };
 
-const STORAGE_KEY = "fortune-history";
-const MAX_ENTRIES = 100;
+const CLIENT_ID_KEY = "fortune-client-id";
 
-// localStorage에서 운세 기록을 읽어옵니다. (최신순으로 저장되어 있음)
-export function loadHistory(): HistoryEntry[] {
-  if (typeof window === "undefined") return [];
+// 브라우저별 익명 식별자. 인증 없이 "내 기록"을 구분하기 위해 사용합니다.
+// (localStorage에 한 번 생성해 재사용)
+export function getClientId(): string {
+  if (typeof window === "undefined") return "";
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as HistoryEntry[]) : [];
+    let id = window.localStorage.getItem(CLIENT_ID_KEY);
+    if (!id) {
+      id = crypto.randomUUID();
+      window.localStorage.setItem(CLIENT_ID_KEY, id);
+    }
+    return id;
   } catch {
-    return [];
+    // localStorage 사용 불가 시 임시 id (기록이 유지되지 않을 수 있음)
+    return crypto.randomUUID();
   }
 }
 
-// 새 운세 기록을 맨 앞(최신)에 추가한 뒤 저장하고, 갱신된 목록을 반환합니다.
-export function addHistoryEntry(
+// 뽑은 운세로부터 저장용 기록 항목을 만듭니다. (시각은 뽑은 순간의 로컬 시간)
+export function buildEntry(
   fortune: Fortune,
   extra: { direction: string; score: number },
-): HistoryEntry[] {
-  const entry: HistoryEntry = {
+): HistoryEntry {
+  return {
     drawnAt: new Date().toISOString(),
     message: fortune.message,
     luckyItem: fortune.luckyItem,
@@ -41,27 +44,6 @@ export function addHistoryEntry(
     direction: extra.direction,
     score: extra.score,
   };
-  const next = [entry, ...loadHistory()].slice(0, MAX_ENTRIES);
-  if (typeof window !== "undefined") {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } catch {
-      // 저장 실패(용량 초과 등)는 조용히 무시합니다.
-    }
-  }
-  return next;
-}
-
-// 모든 운세 기록을 삭제합니다.
-export function clearHistory(): HistoryEntry[] {
-  if (typeof window !== "undefined") {
-    try {
-      window.localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      // 무시
-    }
-  }
-  return [];
 }
 
 // 뽑은 시각을 한국어 형식으로 표시합니다.

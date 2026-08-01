@@ -5,9 +5,16 @@ import { formatDrawnAt, type HistoryEntry } from "./history";
 type HistoryTableProps = {
   entries: HistoryEntry[];
   onClear: () => void;
+  loading?: boolean;
+  error?: string | null;
 };
 
-export default function HistoryTable({ entries, onClear }: HistoryTableProps) {
+export default function HistoryTable({
+  entries,
+  onClear,
+  loading = false,
+  error = null,
+}: HistoryTableProps) {
   return (
     <section className="w-full max-w-3xl px-6 pb-16">
       <div className="mb-4 flex items-center justify-between">
@@ -23,7 +30,17 @@ export default function HistoryTable({ entries, onClear }: HistoryTableProps) {
         )}
       </div>
 
-      {entries.length === 0 ? (
+      {error && (
+        <p className="mb-3 rounded-xl border border-red-400/30 bg-red-950/40 px-4 py-3 text-center text-sm text-red-200">
+          ⚠️ {error}
+        </p>
+      )}
+
+      {loading ? (
+        <p className="rounded-xl border border-indigo-400/20 bg-indigo-950/40 px-4 py-6 text-center text-sm text-indigo-200/60">
+          기록을 불러오는 중…
+        </p>
+      ) : entries.length === 0 ? (
         <p className="rounded-xl border border-indigo-400/20 bg-indigo-950/40 px-4 py-6 text-center text-sm text-indigo-200/60">
           아직 뽑은 운세가 없어요. 카드를 눌러 첫 운세를 확인해보세요!
         </p>
