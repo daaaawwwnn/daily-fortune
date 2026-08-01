@@ -46,6 +46,15 @@ export function buildEntry(
   };
 }
 
+// 보는 사람의 로컬 날짜 기준 "오늘"의 시작~다음날 시작 구간을 ISO로 반환합니다.
+export function getTodayRange(): { startISO: string; endISO: string } {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+  return { startISO: start.toISOString(), endISO: end.toISOString() };
+}
+
 // 뽑은 시각을 한국어 형식으로 표시합니다.
 export function formatDrawnAt(iso: string): string {
   const d = new Date(iso);

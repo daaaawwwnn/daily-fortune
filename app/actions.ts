@@ -68,6 +68,22 @@ export async function insertHistory(
   return fetchHistory(clientId);
 }
 
+// 주어진 구간(오늘)에 운세를 뽑은 서로 다른 사람 수(client_id 기준)를 셉니다.
+export async function countTodayDrawers(
+  startISO: string,
+  endISO: string,
+): Promise<number> {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select("client_id")
+    .gte("drawn_at", startISO)
+    .lt("drawn_at", endISO);
+
+  if (error) throw new Error(`오늘 참여자 수를 불러오지 못했습니다: ${error.message}`);
+  return new Set((data ?? []).map((r) => r.client_id)).size;
+}
+
 // 특정 브라우저(client_id)의 모든 운세 기록을 삭제합니다.
 export async function clearHistory(clientId: string): Promise<HistoryEntry[]> {
   if (!clientId) return [];

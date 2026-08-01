@@ -5,6 +5,7 @@ import FortuneCard from "./FortuneCard";
 import HistoryTable from "./HistoryTable";
 import { buildEntry, getClientId, type HistoryEntry } from "./history";
 import { clearHistory, fetchHistory, insertHistory } from "./actions";
+import { FORTUNE_DRAWN_EVENT } from "./TodayCounter";
 
 export default function FortuneBoard() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -38,6 +39,8 @@ export default function FortuneBoard() {
       try {
         const next = await insertHistory(clientId, entry);
         setHistory(next);
+        // 상단 "오늘 뽑은 사람 수" 갱신
+        window.dispatchEvent(new Event(FORTUNE_DRAWN_EVENT));
       } catch (e: unknown) {
         // 저장 실패 시 낙관적 항목을 되돌립니다.
         setHistory((prev) => prev.filter((h) => h !== entry));
@@ -54,6 +57,8 @@ export default function FortuneBoard() {
     startTransition(async () => {
       try {
         await clearHistory(clientId);
+        // 내 오늘 기록이 사라지면 참여자 수도 달라질 수 있으니 갱신
+        window.dispatchEvent(new Event(FORTUNE_DRAWN_EVENT));
       } catch (e: unknown) {
         setHistory(prev);
         setError(e instanceof Error ? e.message : "기록 삭제에 실패했습니다.");
