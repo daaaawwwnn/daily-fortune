@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FORTUNES, type Fortune } from "./fortunes";
+import { drawAiFortune } from "./actions";
 
 function pickFortune(exclude?: Fortune): Fortune {
   if (FORTUNES.length === 1) return FORTUNES[0];
@@ -48,12 +49,17 @@ export default function FortuneCard({ onDraw }: FortuneCardProps) {
   const [fortune, setFortune] = useState<Fortune | null>(null);
   const [score, setScore] = useState(0);
   const [direction, setDirection] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [isAi, setIsAi] = useState(false);
 
   const handleClick = () => {
+    if (aiLoading) return;
     if (!flipped) {
       const nextFortune = pickFortune(fortune ?? undefined);
       const nextScore = pickScore();
       const nextDirection = pickDirection();
+      setIsAi(false);
       setFortune(nextFortune);
       setScore(nextScore);
       setDirection(nextDirection);
@@ -61,6 +67,34 @@ export default function FortuneCard({ onDraw }: FortuneCardProps) {
       onDraw?.(nextFortune, { direction: nextDirection, score: nextScore });
     } else {
       setFlipped(false);
+    }
+  };
+
+  const handleAiClick = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (aiLoading) return;
+    setAiLoading(true);
+    setAiError(null);
+    try {
+      const ai = await drawAiFortune();
+      const nextFortune: Fortune = {
+        message: ai.message,
+        luckyItem: ai.luckyItem,
+        luckyColor: ai.luckyColor,
+        luckyNumber: ai.luckyNumber,
+      };
+      setIsAi(true);
+      setFortune(nextFortune);
+      setScore(ai.score);
+      setDirection(ai.direction);
+      setFlipped(true);
+      onDraw?.(nextFortune, { direction: ai.direction, score: ai.score });
+    } catch (err) {
+      setAiError(
+        err instanceof Error ? err.message : "AI 운세 생성에 실패했습니다.",
+      );
+    } finally {
+      setAiLoading(false);
     }
   };
 
@@ -85,7 +119,12 @@ export default function FortuneCard({ onDraw }: FortuneCardProps) {
           </div>
 
           {/* Card front (fortune result) */}
-          <div className="flip-card-face flip-card-back flex flex-col items-center justify-center gap-5 rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-orange-50 p-6 text-center shadow-2xl">
+          <div className="flip-card-face flip-card-back relative flex flex-col items-center justify-center gap-5 rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-orange-50 p-6 text-center shadow-2xl">
+            {isAi && (
+              <span className="absolute right-3 top-3 rounded-full bg-violet-600 px-2 py-0.5 text-xs font-semibold text-white shadow">
+                🤖 AI 생성
+              </span>
+            )}
             <div className="text-4xl">🔮</div>
             <div className="w-full">
               <div className="mb-1 flex items-baseline justify-between text-sm">
@@ -129,6 +168,23 @@ export default function FortuneCard({ onDraw }: FortuneCardProps) {
       <p className="text-sm text-slate-400">
         {flipped ? "카드를 다시 누르면 새로운 운세를 볼 수 있어요" : "카드를 클릭해보세요"}
       </p>
+
+      <button
+        type="button"
+        onClick={handleAiClick}
+        disabled={aiLoading}
+        className="flex items-center gap-2 rounded-full border border-violet-400/50 bg-violet-500/10 px-4 py-2 text-sm font-medium text-violet-200 transition hover:bg-violet-500/20 disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-300/60"
+      >
+        {aiLoading ? (
+          <>
+            <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-violet-300 border-t-transparent" />
+            AI가 운세를 만드는 중…
+          </>
+        ) : (
+          <>🤖 AI 운세 생성</>
+        )}
+      </button>
+      {aiError && <p className="max-w-xs text-center text-sm text-red-300">⚠️ {aiError}</p>}
     </div>
   );
 }

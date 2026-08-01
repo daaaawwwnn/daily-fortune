@@ -2,6 +2,7 @@
 
 import { getSupabaseAdmin } from "./lib/supabaseServer";
 import { getSupabaseServer } from "./lib/supabaseServerClient";
+import { generateAiFortune, type AiFortune } from "./lib/openrouter";
 import type { HistoryEntry } from "./history";
 
 const TABLE = "fortune_history";
@@ -110,6 +111,11 @@ export async function claimAnonymousHistory(anonId: string): Promise<void> {
     .update({ client_id: user.id })
     .eq("client_id", anonId);
   if (error) throw new Error(`기록 이전에 실패했습니다: ${error.message}`);
+}
+
+// OpenRouter의 LLM으로 오늘의 운세를 새로 생성합니다. (API Key는 서버에만 존재)
+export async function drawAiFortune(): Promise<AiFortune> {
+  return generateAiFortune();
 }
 
 // 주어진 구간(오늘)에 운세를 뽑은 서로 다른 소유자 수를 셉니다.
