@@ -140,7 +140,7 @@ export default function FortuneCard({ onDraw }: FortuneCardProps) {
                 />
               </div>
             </div>
-            <p className="text-base font-medium leading-relaxed text-slate-800">
+            <p className="whitespace-pre-line text-base font-medium leading-relaxed text-slate-800">
               {fortune?.message}
             </p>
             <div className="mt-2 w-full space-y-2 rounded-xl bg-amber-100/70 px-4 py-3 text-sm text-slate-700">

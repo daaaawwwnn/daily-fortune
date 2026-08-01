@@ -14,7 +14,11 @@ const DIRECTIONS = ["동쪽", "서쪽", "남쪽", "북쪽", "북동쪽", "남동
 const SCHEMA = {
   type: "object",
   properties: {
-    message: { type: "string", description: "오늘의 운세 메시지, 2문장 이내의 한국어" },
+    message: {
+      type: "string",
+      description:
+        "오늘의 운세 메시지. 정확히 세 줄, 줄바꿈 문자(\\n)로 구분. 다정하고 친근한 반말(한국어)로 작성",
+    },
     luckyItem: { type: "string", description: "행운의 아이템 (한국어, 한 단어~짧은 구)" },
     luckyColor: { type: "string", description: "행운의 색 (한국어)" },
     luckyNumber: { type: "integer", description: "0~99 사이의 행운의 숫자" },
@@ -60,8 +64,9 @@ export async function generateAiFortune(): Promise<AiFortune> {
         {
           role: "system",
           content:
-            "너는 재치있고 따뜻한 한국어 운세 작가야. 매번 다르고 창의적인 '오늘의 운세'를 만들어줘. " +
-            "메시지는 2문장 이내, 존댓말로 작성해. 반드시 주어진 JSON 스키마 형식으로만 응답해.",
+            "너는 재치있고 다정한 한국어 운세 작가야. 매번 다르고 창의적인 '오늘의 운세'를 만들어줘. " +
+            "메시지는 정확히 세 줄로 나눠서 써줘(줄 사이는 \\n로 구분). 존댓말 말고 다정한 반말로, " +
+            "친한 친구가 말해주듯이 편안하게 작성해. 반드시 주어진 JSON 스키마 형식으로만 응답해.",
         },
         {
           role: "user",
