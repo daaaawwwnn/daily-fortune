@@ -130,61 +130,67 @@ export default function FortuneCard({ onDraw }: FortuneCardProps) {
         type="button"
         onClick={handleClick}
         aria-label={flipped ? "카드를 다시 뒤집기" : "카드를 뒤집어 운세 보기"}
-        className="perspective h-96 w-64 cursor-pointer select-none rounded-2xl focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300/60 sm:h-[26rem] sm:w-72"
+        className="perspective h-[30rem] w-72 cursor-pointer select-none rounded-2xl focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300/60 sm:h-[36rem] sm:w-80"
       >
         <div className={`flip-card-inner ${flipped ? "flipped" : ""}`}>
           {/* Card back (shown first) */}
-          <div className="flip-card-face flex flex-col items-center justify-center gap-4 rounded-2xl border border-amber-300/40 bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 shadow-2xl">
-            <div className="sparkle text-6xl">✨</div>
-            <p className="text-lg font-semibold tracking-wide text-amber-200">
-              오늘의 운세
-            </p>
-            <p className="px-6 text-center text-sm text-indigo-200/80">
-              카드를 눌러서 확인해보세요
-            </p>
+          <div className="flip-card-face rounded-2xl border border-amber-300/40 bg-gradient-to-br from-indigo-900 via-purple-900 to-slate-900 shadow-2xl">
+            {/* 3D 플립 요소 자체에는 overflow를 주지 않고, 안쪽 래퍼에서만 스크롤되게 분리 */}
+            <div className="flex h-full w-full flex-col items-center justify-center gap-4 overflow-y-auto p-6">
+              <div className="sparkle text-6xl">✨</div>
+              <p className="text-lg font-semibold tracking-wide text-amber-200">
+                오늘의 운세
+              </p>
+              <p className="px-6 text-center text-sm text-indigo-200/80">
+                카드를 눌러서 확인해보세요
+              </p>
+            </div>
           </div>
 
           {/* Card front (fortune result) */}
-          <div className="flip-card-face flip-card-back relative flex flex-col items-center justify-center gap-5 rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-orange-50 p-6 text-center shadow-2xl">
+          <div className="flip-card-face flip-card-back relative rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-orange-50 shadow-2xl">
             {isAi && (
-              <span className="absolute right-3 top-3 rounded-full bg-violet-600 px-2 py-0.5 text-xs font-semibold text-white shadow">
+              <span className="absolute right-3 top-3 z-10 rounded-full bg-violet-600 px-2 py-0.5 text-xs font-semibold text-white shadow">
                 🤖 AI 생성
               </span>
             )}
-            <div className="text-4xl">🔮</div>
-            <div className="w-full">
-              <div className="mb-1 flex items-baseline justify-between text-sm">
-                <span className="font-semibold text-amber-700">오늘의 운세 지수</span>
-                <span className="font-bold text-slate-800">
-                  {score}점 · {scoreLabel(score)}
-                </span>
+            {/* 3D 플립 요소 자체에는 overflow를 주지 않고, 안쪽 래퍼에서만 스크롤되게 분리 */}
+            <div className="flex h-full w-full flex-col items-center justify-start gap-5 overflow-y-auto p-6 pt-8 text-center">
+              <div className="text-4xl">🔮</div>
+              <div className="w-full">
+                <div className="mb-1 flex items-baseline justify-between text-sm">
+                  <span className="font-semibold text-amber-700">오늘의 운세 지수</span>
+                  <span className="font-bold text-slate-800">
+                    {score}점 · {scoreLabel(score)}
+                  </span>
+                </div>
+                <div className="h-3 w-full overflow-hidden rounded-full bg-amber-100">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500 transition-[width] duration-700 ease-out"
+                    style={{ width: `${score}%` }}
+                  />
+                </div>
               </div>
-              <div className="h-3 w-full overflow-hidden rounded-full bg-amber-100">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-500 transition-[width] duration-700 ease-out"
-                  style={{ width: `${score}%` }}
-                />
-              </div>
-            </div>
-            <p className="whitespace-pre-line text-base font-medium leading-relaxed text-slate-800">
-              {fortune?.message}
-            </p>
-            <div className="mt-2 w-full space-y-2 rounded-xl bg-amber-100/70 px-4 py-3 text-sm text-slate-700">
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-amber-700">행운의 아이템</span>
-                <span>{fortune?.luckyItem}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-amber-700">행운의 색</span>
-                <span>{fortune?.luckyColor}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-amber-700">행운의 숫자</span>
-                <span>{fortune?.luckyNumber}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="font-semibold text-amber-700">행운의 방향</span>
-                <span>{direction}</span>
+              <p className="whitespace-pre-line text-base font-medium leading-relaxed text-slate-800">
+                {fortune?.message}
+              </p>
+              <div className="mt-2 w-full space-y-2 rounded-xl bg-amber-100/70 px-4 py-3 text-sm text-slate-700">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-amber-700">행운의 아이템</span>
+                  <span>{fortune?.luckyItem}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-amber-700">행운의 색</span>
+                  <span>{fortune?.luckyColor}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-amber-700">행운의 숫자</span>
+                  <span>{fortune?.luckyNumber}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-amber-700">행운의 방향</span>
+                  <span>{direction}</span>
+                </div>
               </div>
             </div>
           </div>
