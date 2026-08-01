@@ -1,7 +1,8 @@
 import "server-only";
 import type { Fortune } from "../fortunes";
 
-const DEFAULT_MODEL = "openai/gpt-4o-mini";
+// OpenRouter를 통해 사용할 모델. 기본값: Anthropic Claude Sonnet 5
+const DEFAULT_MODEL = "anthropic/claude-sonnet-5";
 
 export type AiFortune = Fortune & {
   direction: string;
@@ -16,13 +17,11 @@ const SCHEMA = {
     message: { type: "string", description: "오늘의 운세 메시지, 2문장 이내의 한국어" },
     luckyItem: { type: "string", description: "행운의 아이템 (한국어, 한 단어~짧은 구)" },
     luckyColor: { type: "string", description: "행운의 색 (한국어)" },
-    luckyNumber: { type: "integer", minimum: 0, maximum: 99 },
+    luckyNumber: { type: "integer", description: "0~99 사이의 행운의 숫자" },
     direction: { type: "string", enum: DIRECTIONS },
     score: {
       type: "integer",
-      minimum: 0,
-      maximum: 100,
-      description: "오늘의 운세 지수 (0~100)",
+      description: "오늘의 운세 지수, 0~100 사이의 정수",
     },
   },
   required: [
